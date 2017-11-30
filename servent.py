@@ -11,12 +11,16 @@ import sys
 import socket
 import struct
 
-nome_arquivo = "teste.txt"
+nome_arquivo = "services"
 arquivo = open(nome_arquivo)
 while True:
 	aux = arquivo.readline()
-	if aux == '':			# Encerra se chegou ao final do arquivo
+	if aux == '':	 # Encerra se chegou ao final do arquivo
 		break
-	elif aux[0] != '#':		# Salva chave contida no arquivo
-		sys.stdout.write(aux); sys.stdout.flush()
+	elif aux[0] != '#' and aux != '\n':		# Salva chave contida no arquivo
+		linha = aux.split()
+		chave = linha[0]
+		aux2 = aux.lstrip(linha[0])
+		if aux2[0] == '\t':
+			aux2 = aux2.lstrip('\t')
 arquivo.close()
