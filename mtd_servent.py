@@ -3,10 +3,9 @@
 import sys
 import socket
 import struct
-import mtd_servent
 
-# obtem_chave_valor(arquivo_a_ser_lido)
-# Lê um arquivo indicado e obtém a chave e o valor de uma linha
+# obtem_chave_valor(linha_lida_do_arquivo)
+# Obtém a chave e o valor de uma linha lida do arquivo
 # Saída: chave e valor da linha
 def obtem_chave_valor(aux):
 	if aux[0] != '#' and aux != '\n':		# Salva chave contida no arquivo
@@ -20,12 +19,24 @@ def obtem_chave_valor(aux):
 	else:
 		return None, None
 
-def conta_linhas(arquivo):
+# conta_linhas(arquivo_que_contém_as_chaves_e_valores)
+# Conta número de chaves contidas no arquivo
+# Saída: número de chaves
+def conta_chaves(arquivo):
 	c = 0
-	arquivo.seek(0,0)
 	while True:
 		aux = arquivo.readline()
 		if aux == '':	 # Encerra se chegou ao final do arquivo
+			arquivo.seek(0,0)
 			return c
 		elif aux[0] != '#' and aux != '\n':
 			c = c + 1
+
+# add_lista_chave_valor(lista_a_add_chave_e_valor, contador, chave, valor)
+# Adiciona as chaves e valores lidos do arquivo em uma lista
+# Saída: lista com chaves e valores adicionados
+def add_lista_chave_valor(lista,c, chave, valor):
+	lista[c][0] = c
+	lista[c][1] = chave
+	lista[c][2] = valor
+	return lista
