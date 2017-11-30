@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# ============================ P2P - mtd_servent ============================
+# Programa de chat desenvolvido para a disciplina de Redes de Computadores
+# UNIVERSIDADE FEDERAL DE MINAS GERAIS
+# Desenvolvido por Bhryan Henderson Lopes Perpétuo e Rafael Santos de Almeida
+# Dezembro de 2017
+# ===========================================================================
+
 import sys
 import socket
 import struct
@@ -36,7 +43,13 @@ def conta_chaves(arquivo):
 # Adiciona as chaves e valores lidos do arquivo em uma lista
 # Saída: lista com chaves e valores adicionados
 def add_lista_chave_valor(lista,c, chave, valor):
+	for i in range(c):
+		if lista[i][1] == chave:
+			lista[i][1] = chave
+			lista[i][2] = valor
+			c = c -1
+			return lista, c
 	lista[c][0] = c
 	lista[c][1] = chave
 	lista[c][2] = valor
-	return lista
+	return lista, c
