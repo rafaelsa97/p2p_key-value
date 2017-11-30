@@ -29,7 +29,7 @@ def obtem_chave_valor(aux):
 # conta_linhas(arquivo_que_contém_as_chaves_e_valores)
 # Conta número de chaves contidas no arquivo
 # Saída: número de chaves
-def conta_chaves(arquivo):
+def conta_linhas(arquivo):
 	c = 0
 	while True:
 		aux = arquivo.readline()
