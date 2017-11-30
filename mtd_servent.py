@@ -53,3 +53,14 @@ def add_lista_chave_valor(lista,c, chave, valor):
 	lista[c][1] = chave
 	lista[c][2] = valor
 	return lista, c
+
+# busca_chave(lista_de_chaves_e_valores, chave_procurada, numero_de_chaves)
+# Procura se a chave procurada está na sua memória
+# Saída: valor atrelado à chave procurada em caso de sucesso
+def busca_chave(lista, chave_procurada, n_chaves):
+	for i in range(n_chaves):
+		if lista[i][1] == chave_procurada:
+			print "Chave encontrada!"
+			return lista[i][2]
+	print "Chave não encontrada."
+	return None		

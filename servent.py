@@ -12,10 +12,8 @@ import socket
 import struct
 import mtd_servent
 
-IP = '127.0.0.1'
-PORTO = 51515
+endereco = ('127.0.0.1', 51515) # Endereço local do programa
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
-endereco = (IP, PORTO) # Endereço local do programa
 
 nome_arquivo = "teste"
 arquivo = open(nome_arquivo)
@@ -31,9 +29,8 @@ while True:
 	if chave != None and valor != None:
 		lista, c = mtd_servent.add_lista_chave_valor(lista, c, chave, valor)
 		c = c + 1
-
 num_chaves = c
-print num_chaves
-print lista
+
+chave_procurada = mtd_servent.busca_chave(lista, "daytime", num_chaves)
 
 arquivo.close()
