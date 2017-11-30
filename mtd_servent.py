@@ -12,6 +12,6 @@ def obtem_chave_valor(arquivo):
 			linha = aux.split()
 			chave = linha[0]
 			aux2 = aux.lstrip(linha[0])
-			if aux2[0] == '\t':
+			while aux2[0] == '\t':
 				aux2 = aux2.lstrip('\t')
 			return chave, aux2
