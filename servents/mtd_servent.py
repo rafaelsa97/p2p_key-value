@@ -89,8 +89,8 @@ def busca_chave(lista, chave_procurada, n_chaves):
 def KEYREQ(dados, addr, socket, lista, n_chaves, servents):
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
-	valor = busca_chave(lista, chave, n_chaves) # Busca se a chave está em sua lista
-	envia_KEYFLOOD(3, nseq, addr, chave, socket, servents)
+	valor = busca_chave(lista, chave, n_chaves) 		   # Busca se a chave está em sua lista
+	envia_KEYFLOOD(3, nseq, addr, chave, socket, servents) # Alaga para os outros servents
 	if valor != None:
 		RESP(nseq, valor, addr, socket)
 	return nseq, chave
@@ -108,6 +108,15 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 	print mensagem
 	for i in servents:
 		socket.sendto(mensagem, i)
+
+def recebe_KEYFLOOD(dados):
+	TTL           = struct.unpack('!H',  dados[2:4])
+	nseq          = struct.unpack('!I',  dados[4:8])
+	IP_cliente    = struct.unpack('!4B', dados[8:12])
+	porto_cliente = struct.unpack('!H',  dados[12:14])
+	chave         = dados[14:]
+	print "Dados recebidos por KEYFLOOD:"
+	print TTL + " " + nseq + " " + IP_cliente + " " + porto_cliente + " " + chave
 
 # RESP(num_sequência, valor, endereço_do_cliente, socket)
 # Envia resposta para o cliente no formato do protocolo
