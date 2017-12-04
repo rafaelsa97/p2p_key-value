@@ -19,8 +19,8 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
 s.bind(('localhost',porto))
 
 arquivo = open(nome_arquivo)
-num_chaves = mtd_servent.conta_linhas(arquivo) # Salva o número de linhas contidas no arquivo
-lista = [ [ 0 for i in range(3) ] for j in range(num_chaves) ] # Cria lista com tamanho exato para caber todas as chaves
+n_chaves = mtd_servent.conta_linhas(arquivo) # Salva o número de linhas contidas no arquivo
+lista = [ [ 0 for i in range(3) ] for j in range(n_chaves) ] # Cria lista com tamanho exato para caber todas as chaves
 c = 0 # Contador auxiliar
 
 # Lê as chaves e os valores do arquivo:
@@ -33,7 +33,7 @@ while True:
 	if chave != None and valor != None:
 		lista, c = mtd_servent.add_lista_chave_valor(lista, c, chave, valor)
 		c = c + 1
-num_chaves = c
+n_chaves = c
 
 # Trata as mensagem recebidas:
 while True:
@@ -41,8 +41,8 @@ while True:
 	print "Endreço do cliente: " + str(addr[0]) + " " + str(addr[1])
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
-		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, num_chaves, servents)
+		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, servents)
 	if tipo_msg == 7: # KEYFLOOD
-		nseq, chave = mtd_servent.recebe_KEYFLOOD(aux)
+		nseq, chave = mtd_servent.recebe_KEYFLOOD(aux, lista)
 
 arquivo.close()

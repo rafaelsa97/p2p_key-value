@@ -75,8 +75,8 @@ def add_lista_chave_valor(lista, c, chave, valor):
 # busca_chave(lista_de_chaves_e_valores, chave_procurada, numero_de_chaves)
 # Procura se a chave procurada está na sua memória
 # Saída: valor atrelado à chave procurada em caso de sucesso
-def busca_chave(lista, chave_procurada, n_chaves):
-	for i in range(n_chaves):
+def busca_chave(lista, chave_procurada):
+	for i in range(len(lista)):
 		if lista[i][1] == chave_procurada: # Verifica se chave foi encontrada
 			print "Chave encontrada!"
 			return lista[i][2]
@@ -86,10 +86,10 @@ def busca_chave(lista, chave_procurada, n_chaves):
 # KEYREQ(dados_recebidos, endereco_do_cliente, socket)
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
-def KEYREQ(dados, addr, socket, lista, n_chaves, servents):
+def KEYREQ(dados, addr, socket, lista, servents):
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
-	valor = busca_chave(lista, chave, n_chaves) 		   # Busca se a chave está em sua lista
+	valor = busca_chave(lista, chave) 		   # Busca se a chave está em sua lista
 	envia_KEYFLOOD(3, nseq, addr, chave, socket, servents) # Alaga para os outros servents
 	if valor != None:
 		RESP(nseq, valor, addr, socket)
@@ -112,7 +112,7 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 		socket.sendto(mensagem, (i[1], i[2]))
 		c = c + 1
 
-def recebe_KEYFLOOD(dados):
+def recebe_KEYFLOOD(dados, lista):
 	TTL           = struct.unpack('!H', dados[2:4])
 	nseq          = struct.unpack('!I', dados[4:8])
 	#IP_cliente    = struct.unpack('!I', dados[8:12])
@@ -120,7 +120,7 @@ def recebe_KEYFLOOD(dados):
 	chave         = dados[10:]
 	print "Dados recebidos por KEYFLOOD:"
 	#print TTL + " " + nseq + " " + IP_cliente + " " + porto_cliente + " " + chave
-	print str(TTL) + " " + str(nseq) + " " + str(porto_cliente) + " " + chave
+	valor = busca_chave(lista, chave)
 	return nseq, chave
 
 # RESP(num_sequência, valor, endereço_do_cliente, socket)
