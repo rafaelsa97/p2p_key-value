@@ -22,25 +22,26 @@ num_chaves = mtd_servent.conta_linhas(arquivo) # Salva o número de linhas conti
 lista = [ [ 0 for i in range(3) ] for j in range(num_chaves) ] # Cria lista com tamanho exato para caber todas as chaves
 c = 0 # Contador auxiliar
 
+# Lê as chaves e os valores do arquivo:
 while True:
-	aux = arquivo.readline()
-	if aux == '':
+	aux = arquivo.readline() #Lê uma linha do arquivo
+	if aux == '': # Encerra o laço se chegou ao final do arquivo
 		break
 	chave, valor = mtd_servent.obtem_chave_valor(aux)
+	# Adiciona a chave e o valor em uma lista:
 	if chave != None and valor != None:
 		lista, c = mtd_servent.add_lista_chave_valor(lista, c, chave, valor)
 		c = c + 1
 num_chaves = c
 
+# Trata as mensagem recebidas:
 while True:
-	aux, addr = s.recvfrom(2)
-	tipo_msg  = struct.unpack('!H', aux)
-	aux, addr = s.recvfrom(4)
-	nseq      = struct.unpack('!I', aux)
-	#aux, addr = s.recvfrom(400)
-	#print aux
-	print tipo_msg
+	aux, addr = s.recvfrom(1024)
+	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
+	if tipo_msg == 5: # KEYREQ
+		nseq, chave = mtd_servent.KEYREQ(aux)
 	print nseq
+	print chave
 chave_procurada = mtd_servent.busca_chave(lista, "daytime", num_chaves)
 
 arquivo.close()
