@@ -43,7 +43,6 @@ while True:
 	if tipo_msg == 5: # KEYREQ
 		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, num_chaves, servents)
 	if tipo_msg == 7: # KEYFLOOD
-		nseq, chave = mtd_servent.recebe_KEYFLOOD()
-chave_procurada = mtd_servent.busca_chave(lista, "daytime", num_chaves)
+		nseq, chave = mtd_servent.recebe_KEYFLOOD(aux)
 
 arquivo.close()

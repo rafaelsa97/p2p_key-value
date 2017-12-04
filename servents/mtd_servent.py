@@ -95,28 +95,33 @@ def KEYREQ(dados, addr, socket, lista, n_chaves, servents):
 		RESP(nseq, valor, addr, socket)
 	return nseq, chave
 
-# RESP(time_to_live, num_sequência, addr_do_cliente,chave_para_buscar, socket, addrs_de_servents)
+# envia_KEYFLOOD(time_to_live, num_sequência, addr_do_cliente,chave_para_buscar, socket, addrs_de_servents)
 # Monta mensagem de tipo KEYFLOOD e envia para todos os servents descobertos
 # Saída: ---//---
 def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
-	pack_tipo = struct.pack('!H',7)
-	pack_TTL  = struct.pack('!H',TTL)
-	pack_nseq = struct.pack('!I',nseq)
-	pack_IP_clt = struct.pack('!4B',addr[0])
+	pack_tipo     = struct.pack('!H',7)
+	pack_TTL      = struct.pack('!H',TTL)
+	pack_nseq     = struct.pack('!I',nseq)
+	#pack_IP_clt   = struct.pack('!B',addr[0])
 	pack_port_clt = struct.pack('!H',addr[1])
-	mensagem = pack_tipo + pack_TTL + pack_nseq + pack_IP_clt + pack_port_clt + chave
+	#mensagem = pack_tipo + pack_TTL + pack_nseq + pack_IP_clt + pack_port_clt + chave
+	mensagem = pack_tipo + pack_TTL + pack_nseq + pack_port_clt + chave
 	print mensagem
+	c = 0
 	for i in servents:
-		socket.sendto(mensagem, i)
+		socket.sendto(mensagem, (i[1], i[2]))
+		c = c + 1
 
 def recebe_KEYFLOOD(dados):
-	TTL           = struct.unpack('!H',  dados[2:4])
-	nseq          = struct.unpack('!I',  dados[4:8])
-	IP_cliente    = struct.unpack('!4B', dados[8:12])
-	porto_cliente = struct.unpack('!H',  dados[12:14])
-	chave         = dados[14:]
+	TTL           = struct.unpack('!H', dados[2:4])
+	nseq          = struct.unpack('!I', dados[4:8])
+	#IP_cliente    = struct.unpack('!I', dados[8:12])
+	porto_cliente = struct.unpack('!H', dados[8:10])
+	chave         = dados[10:]
 	print "Dados recebidos por KEYFLOOD:"
-	print TTL + " " + nseq + " " + IP_cliente + " " + porto_cliente + " " + chave
+	#print TTL + " " + nseq + " " + IP_cliente + " " + porto_cliente + " " + chave
+	print str(TTL) + " " + str(nseq) + " " + str(porto_cliente) + " " + chave
+	return nseq, chave
 
 # RESP(num_sequência, valor, endereço_do_cliente, socket)
 # Envia resposta para o cliente no formato do protocolo
