@@ -39,7 +39,7 @@ while True:
 	aux, addr = s.recvfrom(1024)
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
-		nseq, chave = mtd_servent.KEYREQ(aux)
+		nseq, chave = mtd_servent.KEYREQ(aux, addr, s)
 	print nseq
 	print chave
 chave_procurada = mtd_servent.busca_chave(lista, "daytime", num_chaves)

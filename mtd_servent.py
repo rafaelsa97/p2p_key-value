@@ -65,10 +65,16 @@ def busca_chave(lista, chave_procurada, n_chaves):
 	print "Chave não encontrada."
 	return None
 
-# KEYREQ(dados_recebidos)
+# KEYREQ(dados_recebidos, endereco_do_cliente, socket)
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
-def KEYREQ(dados):
+def KEYREQ(dados, addr, socket):
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
+	RESP(nseq, "oi sumida rs", addr, socket)
 	return nseq, chave
+
+def RESP(nseq, valor, addr, socket):
+	pack_tipo = struct.pack('!H',9)
+	pack_nseq = struct.pack('!I',nseq)
+	socket.sendto(pack_tipo + pack_nseq + valor, addr)
