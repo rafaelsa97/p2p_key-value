@@ -11,15 +11,32 @@ import sys
 import socket
 import struct
 
+# parametros_entrada(argumentos_de_entrada)
+# Obtém os argumentos de entrada digitados pelo usuário
+# Saída: número de porto do programa, nome do arquivo de chaves e lista com endereços de servents
+def parametros_entrada(argumentos):
+	if len(argumentos) < 5:
+		print "ERRO!\nQuantidade insuficiente de argumentos. Tente novamente."
+		sys.exit(0)
+	porto        = int(argumentos[2])
+	nome_arquivo = argumentos[3]
+	# Inicializa a lista de endereços de outros servents:
+	servents = [ [ 0 for i in range(3) ] for j in range(len(argumentos) - 4) ]
+	for i in range(len(argumentos) - 4): # Salva índice, IP e porto passado por parâmetro
+		servents[i][0] = i 									  # Índice
+		servents[i][1] = argumentos[i + 4].split(':')[0]      # IP
+		servents[i][2] = int(argumentos[i + 4].split(':')[1]) # Porto
+	return porto, nome_arquivo, servents
+
 # obtem_chave_valor(linha_lida_do_arquivo)
 # Obtém a chave e o valor de uma linha lida do arquivo
 # Saída: chave e valor da linha
 def obtem_chave_valor(aux):
 	if aux[0] != '#' and aux != '\n':		# Salva chave contida no arquivo
-		linha = aux.split()
-		chave = linha[0]
-		aux2 = aux.lstrip(linha[0])
-		aux2 = aux2.replace('\n', '')
+		linha  = aux.split()
+		chave  = linha[0]
+		aux2   = aux.lstrip(linha[0])
+		aux2   = aux2.replace('\n', '')
 		while aux2[0] == '\t':
 			aux2 = aux2.lstrip('\t')
 		return chave, aux2
@@ -44,7 +61,7 @@ def conta_linhas(arquivo):
 # Saída: lista com chaves e valores adicionados
 def add_lista_chave_valor(lista,c, chave, valor):
 	for i in range(c):
-		if lista[i][1] == chave:
+		if lista[i][1] == chave: # Confere se há uma chave de mesmo nome na lista
 			lista[i][1] = chave
 			lista[i][2] = valor
 			c = c -1
@@ -59,7 +76,7 @@ def add_lista_chave_valor(lista,c, chave, valor):
 # Saída: valor atrelado à chave procurada em caso de sucesso
 def busca_chave(lista, chave_procurada, n_chaves):
 	for i in range(n_chaves):
-		if lista[i][1] == chave_procurada:
+		if lista[i][1] == chave_procurada: # Verifica se chave foi encontrada
 			print "Chave encontrada!"
 			return lista[i][2]
 	print "Chave não encontrada."
@@ -68,12 +85,27 @@ def busca_chave(lista, chave_procurada, n_chaves):
 # KEYREQ(dados_recebidos, endereco_do_cliente, socket)
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
-def KEYREQ(dados, addr, socket):
+def KEYREQ(dados, addr, socket, lista, n_chaves):
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
-	RESP(nseq, "oi sumida rs", addr, socket)
+	valor = busca_chave(lista, chave, n_chaves) # Busca se a chave está em sua lista
+	if valor != None:
+		RESP(nseq, valor, addr, socket)
 	return nseq, chave
 
+def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, lista, servents):
+	pack_tipo = struct.pack('!H',7)
+	pack_TTL  = struct.pack('!H',TTL)
+	pack_nseq = struct.pack('!I',nseq)
+	#pack_IP_clt = struct.pack('',addr[0])
+	pack_port_clt = struct.pack('!H',addr[1])
+	mensagem = pack_tipo + pack_TTL + pack_nseq + pack_IP_clt + pack_port_clt + chave
+	for i in servents:
+		socket.sendto(mensagem, i)
+
+# RESP(num_sequência, valor, endereço_do_cliente, socket)
+# Envia resposta para o cliente no formato do protocolo
+# Saída: ---//---
 def RESP(nseq, valor, addr, socket):
 	pack_tipo = struct.pack('!H',9)
 	pack_nseq = struct.pack('!I',nseq)

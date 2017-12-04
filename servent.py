@@ -12,9 +12,11 @@ import socket
 import struct
 import mtd_servent
 
-endereco = ('127.0.0.1', 51515) # Endereço local do programa
+mtd_servent.parametros_entrada(sys.argv)
+
+porto, nome_arquivo, servents = mtd_servent.parametros_entrada(sys.argv)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
-s.bind(endereco)
+s.bind(('localhost',porto))
 
 nome_arquivo = "teste"
 arquivo = open(nome_arquivo)
@@ -37,11 +39,10 @@ num_chaves = c
 # Trata as mensagem recebidas:
 while True:
 	aux, addr = s.recvfrom(1024)
+	print "Endreço do cliente: " + str(addr[0]) + str(addr[1])
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
-		nseq, chave = mtd_servent.KEYREQ(aux, addr, s)
-	print nseq
-	print chave
+		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, num_chaves)
 chave_procurada = mtd_servent.busca_chave(lista, "daytime", num_chaves)
 
 arquivo.close()
