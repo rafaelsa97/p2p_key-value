@@ -18,7 +18,6 @@ porto, nome_arquivo, servents = mtd_servent.parametros_entrada(sys.argv)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
 s.bind(('localhost',porto))
 
-nome_arquivo = "teste"
 arquivo = open(nome_arquivo)
 num_chaves = mtd_servent.conta_linhas(arquivo) # Salva o número de linhas contidas no arquivo
 lista = [ [ 0 for i in range(3) ] for j in range(num_chaves) ] # Cria lista com tamanho exato para caber todas as chaves

@@ -59,11 +59,12 @@ def conta_linhas(arquivo):
 # add_lista_chave_valor(lista_a_add_chave_e_valor, contador, chave, valor)
 # Adiciona as chaves e valores lidos do arquivo em uma lista
 # Saída: lista com chaves e valores adicionados
-def add_lista_chave_valor(lista,c, chave, valor):
+def add_lista_chave_valor(lista, c, chave, valor):
 	for i in range(c):
 		if lista[i][1] == chave: # Confere se há uma chave de mesmo nome na lista
 			lista[i][1] = chave
 			lista[i][2] = valor
+			del lista[c]
 			c = c -1
 			return lista, c
 	lista[c][0] = c
