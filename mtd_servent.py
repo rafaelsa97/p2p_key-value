@@ -87,6 +87,7 @@ def busca_chave(lista, chave_procurada):
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
 def KEYREQ(dados, addr, socket, lista, servents):
+	print "ENTROU NO KEYREQ"
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
 	valor = busca_chave(lista, chave) 		   # Busca se a chave está em sua lista
@@ -107,24 +108,42 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 	aux3          = struct.pack('!B',int(addr[0].split('.')[2]))
 	aux4          = struct.pack('!B',int(addr[0].split('.')[3]))
 	pack_port_clt = struct.pack('!H',addr[1])
-	print addr[0].split('.')
 	mensagem = pack_tipo + pack_TTL + pack_nseq  + aux1 + aux2 + aux3 + aux4 + pack_port_clt + chave
-	print mensagem
 	c = 0
 	for i in servents:
 		socket.sendto(mensagem, (i[1], i[2]))
 		c = c + 1
 
-def recebe_KEYFLOOD(dados, lista):
-	TTL           = struct.unpack('!H', dados[2:4])
-	nseq          = struct.unpack('!I', dados[4:8])
-	IP_cliente    = struct.unpack('!4B', dados[8:12])
-	porto_cliente = struct.unpack('!H', dados[12:14])
-	chave         = dados[14:]
+def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
 	print "Dados recebidos por KEYFLOOD:"
-	print str(TTL) + " " + str(nseq) + " " + str(IP_cliente) + " " + str(porto_cliente) + " " + chave
+	TTL           = struct.unpack('!H', dados[2:4])[0]
+	nseq          = struct.unpack('!I', dados[4:8])[0]
+	IP_cliente    = str(struct.unpack('!B', dados[8:12][0])[0])
+	for i in range(3):
+		IP_cliente = IP_cliente + ":" + str(struct.unpack('!B', dados[8:12][i + 1])[0])
+	porto_cliente = struct.unpack('!H', dados[12:14])[0]
+	chave         = dados[14:]
+	print addr
+	print nseq
+	historico.append([addr, nseq])
+	print historico
 	valor = busca_chave(lista, chave)
-	return nseq, chave
+	if valor != None: # Envia resposta para o cliente caso tenha achado a chave
+		RESP(nseq, valor, addr, socket)
+	if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
+		TTL = TTL -1
+		envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents)
+	return nseq, chave, historico
+
+# ja_recebeu(addr_do_cliente, num_sequencia, historico_de_requisições)
+# Confere se requisição de KEYFLOOD de um nseq, de um mesmo addr já foi recebido antes
+# Saída: True em caso afirmativo, False em caso negativo
+def ja_recebeu(addr, nseq, historico):
+	for i in range(len(historico)):
+		if historico[i][0] == addr and historico[i][1] == nseq or nseq ==  None: # Verifica se chave foi encontrada
+			return True
+		else:
+			return False
 
 # RESP(num_sequência, valor, endereço_do_cliente, socket)
 # Envia resposta para o cliente no formato do protocolo
