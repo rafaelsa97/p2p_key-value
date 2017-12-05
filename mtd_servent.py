@@ -102,10 +102,14 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 	pack_tipo     = struct.pack('!H',7)
 	pack_TTL      = struct.pack('!H',TTL)
 	pack_nseq     = struct.pack('!I',nseq)
-	#pack_IP_clt   = struct.pack('!B',addr[0])
+	aux1          = struct.pack('!B',int(addr[0].split('.')[0]))
+	aux2          = struct.pack('!B',int(addr[0].split('.')[1]))
+	aux3          = struct.pack('!B',int(addr[0].split('.')[2]))
+	aux4          = struct.pack('!B',int(addr[0].split('.')[3]))
 	pack_port_clt = struct.pack('!H',addr[1])
-	#mensagem = pack_tipo + pack_TTL + pack_nseq + pack_IP_clt + pack_port_clt + chave
-	mensagem = pack_tipo + pack_TTL + pack_nseq + pack_port_clt + chave
+	print addr[0].split('.')
+	mensagem = pack_tipo + pack_TTL + pack_nseq  + aux1 + aux2 + aux3 + aux4 + pack_port_clt + chave
+	print mensagem
 	c = 0
 	for i in servents:
 		socket.sendto(mensagem, (i[1], i[2]))
@@ -114,11 +118,11 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 def recebe_KEYFLOOD(dados, lista):
 	TTL           = struct.unpack('!H', dados[2:4])
 	nseq          = struct.unpack('!I', dados[4:8])
-	#IP_cliente    = struct.unpack('!I', dados[8:12])
-	porto_cliente = struct.unpack('!H', dados[8:10])
-	chave         = dados[10:]
+	IP_cliente    = struct.unpack('!4B', dados[8:12])
+	porto_cliente = struct.unpack('!H', dados[12:14])
+	chave         = dados[14:]
 	print "Dados recebidos por KEYFLOOD:"
-	#print TTL + " " + nseq + " " + IP_cliente + " " + porto_cliente + " " + chave
+	print str(TTL) + " " + str(nseq) + " " + str(IP_cliente) + " " + str(porto_cliente) + " " + chave
 	valor = busca_chave(lista, chave)
 	return nseq, chave
 
