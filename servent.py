@@ -35,7 +35,8 @@ while True:
 		c = c + 1
 n_chaves  = c
 historico = []
-nseq = None
+nseq      = None
+
 # Trata as mensagem recebidas:
 while True:
 	aux, addr = s.recvfrom(1024)
@@ -43,7 +44,7 @@ while True:
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
 		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, servents)
-	if tipo_msg == 7 and mtd_servent.ja_recebeu(addr, nseq, historico): # KEYFLOOD
+	if tipo_msg == 7 and not mtd_servent.ja_recebeu(addr, nseq, historico): # KEYFLOOD
 		nseq, chave, historico = mtd_servent.recebe_KEYFLOOD(aux, lista, addr, s, historico, servents)
 
 arquivo.close()

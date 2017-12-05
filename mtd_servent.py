@@ -83,7 +83,7 @@ def busca_chave(lista, chave_procurada):
 	print "Chave não encontrada."
 	return None
 
-# KEYREQ(dados_recebidos, endereco_do_cliente, socket)
+# KEYREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, addrs_de_servents)
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
 def KEYREQ(dados, addr, socket, lista, servents):
@@ -123,10 +123,7 @@ def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
 		IP_cliente = IP_cliente + ":" + str(struct.unpack('!B', dados[8:12][i + 1])[0])
 	porto_cliente = struct.unpack('!H', dados[12:14])[0]
 	chave         = dados[14:]
-	print addr
-	print nseq
 	historico.append([addr, nseq])
-	print historico
 	valor = busca_chave(lista, chave)
 	if valor != None: # Envia resposta para o cliente caso tenha achado a chave
 		RESP(nseq, valor, addr, socket)
@@ -139,11 +136,14 @@ def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
 # Confere se requisição de KEYFLOOD de um nseq, de um mesmo addr já foi recebido antes
 # Saída: True em caso afirmativo, False em caso negativo
 def ja_recebeu(addr, nseq, historico):
-	for i in range(len(historico)):
-		if historico[i][0] == addr and historico[i][1] == nseq or nseq ==  None: # Verifica se chave foi encontrada
-			return True
-		else:
-			return False
+	if historico == []: # Se histórico está vazio, nenhuma requis. foi recebida.
+		return False
+	else:
+		print " Tamanho do histórico : " + str(len(historico))
+		for i in range(len(historico)):
+			if historico[0][i] == addr and historico[1][i] == nseq: # Verifica se chave foi encontrada
+				return True
+		return False
 
 # RESP(num_sequência, valor, endereço_do_cliente, socket)
 # Envia resposta para o cliente no formato do protocolo
