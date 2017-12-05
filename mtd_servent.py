@@ -86,15 +86,16 @@ def busca_chave(lista, chave_procurada):
 # KEYREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, addrs_de_servents)
 # Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
 # Saída: número de sequência e chave
-def KEYREQ(dados, addr, socket, lista, servents):
+def KEYREQ(dados, addr, socket, lista, servents, historico):
 	print "ENTROU NO KEYREQ"
 	nseq = struct.unpack('!I', dados[2:6])[0]
 	chave = dados[6:]
+	historico.append([addr, nseq])
 	valor = busca_chave(lista, chave) 		   # Busca se a chave está em sua lista
 	envia_KEYFLOOD(3, nseq, addr, chave, socket, servents) # Alaga para os outros servents
 	if valor != None:
 		RESP(nseq, valor, addr, socket)
-	return nseq, chave
+	return nseq, chave, historico
 
 # envia_KEYFLOOD(time_to_live, num_sequência, addr_do_cliente,chave_para_buscar, socket, addrs_de_servents)
 # Monta mensagem de tipo KEYFLOOD e envia para todos os servents descobertos
@@ -109,26 +110,33 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 	aux4          = struct.pack('!B',int(addr[0].split('.')[3]))
 	pack_port_clt = struct.pack('!H',addr[1])
 	mensagem = pack_tipo + pack_TTL + pack_nseq  + aux1 + aux2 + aux3 + aux4 + pack_port_clt + chave
+	c = 0
 	for i in servents:
 		socket.sendto(mensagem, (i[1], i[2]))
+		c = c + 1
 
-def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
+def recebe_KEYFLOOD(dados, lista, socket, historico, servents):
 	print "Dados recebidos por KEYFLOOD:"
 	TTL           = struct.unpack('!H', dados[2:4])[0]
 	nseq          = struct.unpack('!I', dados[4:8])[0]
 	IP_cliente    = str(struct.unpack('!B', dados[8:12][0])[0])
 	for i in range(3):
-		IP_cliente = IP_cliente + ":" + str(struct.unpack('!B', dados[8:12][i + 1])[0])
+		IP_cliente = IP_cliente + "." + str(struct.unpack('!B', dados[8:12][i + 1])[0])
 	porto_cliente = struct.unpack('!H', dados[12:14])[0]
 	chave         = dados[14:]
-	historico.append([addr, nseq])
-	valor = busca_chave(lista, chave)
-	if valor != None: # Envia resposta para o cliente caso tenha achado a chave
-		RESP(nseq, valor, addr, socket)
-	if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
-		TTL = TTL -1
-		envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents)
-	return nseq, chave, historico
+	addr = (IP_cliente, porto_cliente)
+	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + chave
+	if not ja_recebeu(addr, nseq, historico):
+		historico.append([addr, nseq])
+		valor = busca_chave(lista, chave)
+		if valor != None: # Envia resposta para o cliente caso tenha achado a chave
+			RESP(nseq, valor, addr, socket)
+		if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
+			TTL = TTL -1
+			envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents)
+		return nseq, chave, historico, addr
+	else:
+		return nseq, chave, historico, addr
 
 # ja_recebeu(addr_do_cliente, num_sequencia, historico_de_requisições)
 # Confere se requisição de KEYFLOOD de um nseq, de um mesmo addr já foi recebido antes
@@ -137,13 +145,19 @@ def ja_recebeu(addr, nseq, historico):
 	if historico == []: # Se histórico está vazio, nenhuma requis. foi recebida.
 		return False
 	else:
-		for i in range(len(historico) - 1):
-			print "HISTÓRICO: "
-			print historico
-			print "ADDR: "
-			print addr
-			print "NSEQ: "
-			print nseq
+		for i in range(len(historico)):
+			# print "\n"
+			# print "HISTÓRICO (addr): "
+			# print historico[i][0]
+			# print "ADDR: "
+			# print addr
+			# print "HISTÓRICO (nseq): "
+			# print historico[i][1]
+			# print "NSEQ: "
+			# print nseq
+			# print "HISTÓRICO: "
+			# print historico
+			# print "\n"
 			if historico[i][0] == addr and historico[i][1] == nseq: # Verifica se chave foi encontrada
 				return True
 		return False

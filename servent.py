@@ -43,8 +43,8 @@ while True:
 	print "Endereço do cliente: " + str(addr[0]) + " " + str(addr[1])
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
-		nseq, chave = mtd_servent.KEYREQ(aux, addr, s, lista, servents)
-	if tipo_msg == 7 and not mtd_servent.ja_recebeu(addr, nseq, historico): # KEYFLOOD
-		nseq, chave, historico = mtd_servent.recebe_KEYFLOOD(aux, lista, addr, s, historico, servents)
+		nseq, chave, historico = mtd_servent.KEYREQ(aux, addr, s, lista, servents, historico)
+	if tipo_msg == 7: # KEYFLOOD
+		nseq, chave, historico, addr = mtd_servent.recebe_KEYFLOOD(aux, lista, s, historico, servents)
 
 arquivo.close()
