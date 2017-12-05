@@ -1,5 +1,5 @@
 servent:
-	python servent.py mtd_servent.py 51515 teste 127.0.0.1:51516
+	python servent.py mtd_servent.py 51515 teste 127.0.0.1:51516 127.0.0.1:51517
 s1:
 	python servent.py mtd_servent.py 51516 teste 127.0.0.1:51515
 s2:

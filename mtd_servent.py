@@ -22,7 +22,7 @@ def parametros_entrada(argumentos):
 	nome_arquivo = argumentos[3]
 	# Inicializa a lista de endereços de outros servents:
 	servents = [ [ 0 for i in range(3) ] for j in range(len(argumentos) - 4) ]
-	for i in range(len(argumentos) - 4): # Salva índice, IP e porto passado por parâmetro
+	for i in range(len(argumentos) - 4): # Salva índice, IP e porto dos outros servents passados por parâmetro
 		servents[i][0] = i 									  # Índice
 		servents[i][1] = argumentos[i + 4].split(':')[0]      # IP
 		servents[i][2] = int(argumentos[i + 4].split(':')[1]) # Porto
@@ -83,25 +83,11 @@ def busca_chave(lista, chave_procurada):
 	print "Chave não encontrada."
 	return None
 
-# KEYREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, addrs_de_servents)
-# Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
-# Saída: número de sequência e chave
-def KEYREQ(dados, addr, socket, lista, servents, historico):
-	print "ENTROU NO KEYREQ"
-	nseq = struct.unpack('!I', dados[2:6])[0]
-	chave = dados[6:]
-	historico.append([addr, nseq])
-	valor = busca_chave(lista, chave) 		   # Busca se a chave está em sua lista
-	envia_KEYFLOOD(3, nseq, addr, chave, socket, servents) # Alaga para os outros servents
-	if valor != None:
-		RESP(nseq, valor, addr, socket)
-	return nseq, chave, historico
-
-# envia_KEYFLOOD(time_to_live, num_sequência, addr_do_cliente,chave_para_buscar, socket, addrs_de_servents)
+# alaga(tipo_de_msg, time_to_live, num_sequência, addr_do_cliente,chave_para_buscar, socket, addrs_de_servents)
 # Monta mensagem de tipo KEYFLOOD e envia para todos os servents descobertos
 # Saída: ---//---
-def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
-	pack_tipo     = struct.pack('!H',7)
+def alaga(tipo, TTL, nseq, addr, chave, socket, servents):
+	pack_tipo     = struct.pack('!H',tipo)
 	pack_TTL      = struct.pack('!H',TTL)
 	pack_nseq     = struct.pack('!I',nseq)
 	aux1          = struct.pack('!B',int(addr[0].split('.')[0]))
@@ -115,28 +101,77 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 		socket.sendto(mensagem, (i[1], i[2]))
 		c = c + 1
 
-def recebe_KEYFLOOD(dados, lista, socket, historico, servents):
+# KEYREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, addrs_de_servents)
+# Obtém o número de sequência e a chave a partir dos dados recebidos do cliente
+# Saída: número de sequência e chave
+def KEYREQ(dados, addr, socket, lista, servents, historico_key):
+	print "ENTROU NO KEYREQ"
+	nseq = struct.unpack('!I', dados[2:6])[0]
+	chave = dados[6:]
+	historico_key.append([addr, nseq])
+	valor = busca_chave(lista, chave) 		   # Busca se a chave está em sua lista
+	alaga(7, 3, nseq, addr, chave, socket, servents) # Alaga para os outros servents
+	if valor != None:
+		RESP(nseq, valor, addr, socket)
+	return nseq, chave, historico_key
+
+# KEYFLOOD(dados_recebidos, lista_de_chaves, socket, historico_de_requisições, lista_de_servents)
+# Obtém as informações do KEYFLOOD a partir do payload recebido, responde o cliente e encaminha KEYFLOOD
+# Saída: Número de sequência, chave da requisição, histórico de requisições atualizado, addr do cliente
+def KEYFLOOD(dados, lista, socket, historico_key, servents):
 	print "Dados recebidos por KEYFLOOD:"
-	TTL           = struct.unpack('!H', dados[2:4])[0]
-	nseq          = struct.unpack('!I', dados[4:8])[0]
-	IP_cliente    = str(struct.unpack('!B', dados[8:12][0])[0])
+	TTL            = struct.unpack('!H', dados[2:4])[0]
+	nseq           = struct.unpack('!I', dados[4:8])[0]
+	IP_cliente     = str(struct.unpack('!B', dados[8:12][0])[0])
 	for i in range(3):
 		IP_cliente = IP_cliente + "." + str(struct.unpack('!B', dados[8:12][i + 1])[0])
-	porto_cliente = struct.unpack('!H', dados[12:14])[0]
-	chave         = dados[14:]
-	addr = (IP_cliente, porto_cliente)
+	porto_cliente  = struct.unpack('!H', dados[12:14])[0]
+	chave          = dados[14:]
+	addr 		   = (IP_cliente, porto_cliente)
 	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + chave
-	if not ja_recebeu(addr, nseq, historico):
-		historico.append([addr, nseq])
+	if not ja_recebeu(addr, nseq, historico_key):
+		historico_key.append([addr, nseq])
 		valor = busca_chave(lista, chave)
 		if valor != None: # Envia resposta para o cliente caso tenha achado a chave
 			RESP(nseq, valor, addr, socket)
 		if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
 			TTL = TTL -1
-			envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents)
-		return nseq, chave, historico, addr
+			alaga(7, TTL, nseq, addr, chave, socket, servents)
+		return nseq, chave, historico_key, addr
 	else:
-		return nseq, chave, historico, addr
+		return nseq, chave, historico_key, addr
+
+# TOPOREQ(socket, addrs_dos_servents, porto_do_programa, addr_do_cliente, histórico_de_requisições)
+# Obtém núm. seq. enviado pelo cliente e encaminha para enviar TOPOFLOOD e resposta ao cliente
+# Saída: ---//---
+def TOPOREQ(socket, servents, porto, addr, historico_topo):
+	print "ENTROU NO TOPOREQ"
+	nseq = struct.unpack('!I', dados[2:6])[0] # Obtém núm. sequência a partir do pacote recebido
+	historico_topo.append([addr, nseq])		  # Adiciona a mensagem vista ao histórico
+	alaga(8, 3, nseq, addr, socket.INADDR_ANY, porto)
+
+# TOPOFLOOD(dados_recebidos, lista_de_chaves, socket, historico_de_requisições, lista_de_servents)
+# Obtém as informações do TOPOFLOOD a partir do payload recebido, responde o cliente e encaminha TOPOFLOOD
+# Saída: Número de sequência, topologia da rede, histórico de requisições atualizado, addr do cliente
+def TOPOFLOOD(dados, lista, socket, historico_topo, servents):
+	print "Dados recebidos por TOPOFLOOD"
+	TTL            = struct.unpack('!H', dados[2:4])[0]
+	nseq           = struct.unpack('!I', dados[4:8])[0]
+	IP_cliente     = str(struct.unpack('!B', dados[8:12][0])[0])
+	for i in range(3):
+		IP_cliente = IP_cliente + "." + str(struct.unpack('!B', dados[8:12][i + 1])[0])
+	porto_cliente  = struct.unpack('!H', dados[12:14])[0]
+	topologia      = dados[14:]
+	addr 		   = (IP_cliente, porto_cliente)
+	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + chave
+	if not ja_recebeu(addr, nseq, historico_topo):
+		historico_topo.append([addr, nseq])
+		if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
+			TTL = TTL -1
+			alaga(8, TTL, nseq, addr, chave, socket, servents)
+		return nseq, topologia, historico_topo, addr
+	else:
+		return nseq, topologia, historico_topo, addr
 
 # ja_recebeu(addr_do_cliente, num_sequencia, historico_de_requisições)
 # Confere se requisição de KEYFLOOD de um nseq, de um mesmo addr já foi recebido antes

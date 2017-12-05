@@ -12,10 +12,10 @@ import socket
 import struct
 import mtd_servent
 
-mtd_servent.parametros_entrada(sys.argv)
-
 porto, nome_arquivo, servents = mtd_servent.parametros_entrada(sys.argv)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
+HOST = str(socket.INADDR_ANY)
+print "Host aqui: " + HOST
 s.bind(('localhost',porto))
 
 arquivo = open(nome_arquivo)
@@ -33,9 +33,11 @@ while True:
 	if chave != None and valor != None:
 		lista, c = mtd_servent.add_lista_chave_valor(lista, c, chave, valor)
 		c = c + 1
-n_chaves  = c
-historico = []
-nseq      = None
+
+n_chaves       = c
+historico_key  = []
+historico_topo = []
+nseq           = None
 
 # Trata as mensagem recebidas:
 while True:
@@ -43,8 +45,11 @@ while True:
 	print "Endereço do cliente: " + str(addr[0]) + " " + str(addr[1])
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
-		nseq, chave, historico = mtd_servent.KEYREQ(aux, addr, s, lista, servents, historico)
+		nseq, chave, historico_key = mtd_servent.KEYREQ(aux, addr, s, lista, servents, historico_key)
+	if tipo_msg == 6: # TOPOREQ
+		mtd_servent.TOPOREQ(s, servents, porto, addr, historico_topo)
 	if tipo_msg == 7: # KEYFLOOD
-		nseq, chave, historico, addr = mtd_servent.recebe_KEYFLOOD(aux, lista, s, historico, servents)
-
+		nseq, chave, historico_key, addr = mtd_servent.KEYFLOOD(aux, lista, s, historico_key, servents)
+	if tipo_msg == 8: # TOPOFLOOD
+		nseq, topologia, historico_topo, addr = mtd_servent.TOPOFLOOD(aux, lista, s, historico_topo, servents)
 arquivo.close()
