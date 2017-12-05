@@ -123,9 +123,7 @@ def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
 		IP_cliente = IP_cliente + ":" + str(struct.unpack('!B', dados[8:12][i + 1])[0])
 	porto_cliente = struct.unpack('!H', dados[12:14])[0]
 	chave         = dados[14:]
-	print historico
 	historico.append([addr, nseq])
-	print historico
 	valor = busca_chave(lista, chave)
 	if valor != None: # Envia resposta para o cliente caso tenha achado a chave
 		RESP(nseq, valor, addr, socket)
@@ -142,8 +140,13 @@ def ja_recebeu(addr, nseq, historico):
 		return False
 	else:
 		print " Tamanho do histórico : " + str(len(historico))
-		print historico
-		for i in range(len(historico)):
+		for i in range(len(historico) - 1):
+			print "HISTÓRICO: "
+			print historico
+			print "ADDR: "
+			print addr
+			print "NSEQ: "
+			print nseq
 			if historico[0][i] == addr and historico[1][i] == nseq: # Verifica se chave foi encontrada
 				return True
 		return False

@@ -109,10 +109,8 @@ def envia_KEYFLOOD(TTL, nseq, addr, chave, socket, servents):
 	aux4          = struct.pack('!B',int(addr[0].split('.')[3]))
 	pack_port_clt = struct.pack('!H',addr[1])
 	mensagem = pack_tipo + pack_TTL + pack_nseq  + aux1 + aux2 + aux3 + aux4 + pack_port_clt + chave
-	c = 0
 	for i in servents:
 		socket.sendto(mensagem, (i[1], i[2]))
-		c = c + 1
 
 def recebe_KEYFLOOD(dados, lista, addr, socket, historico, servents):
 	print "Dados recebidos por KEYFLOOD:"
@@ -139,8 +137,13 @@ def ja_recebeu(addr, nseq, historico):
 	if historico == []: # Se histórico está vazio, nenhuma requis. foi recebida.
 		return False
 	else:
-		print " Tamanho do histórico : " + str(len(historico))
-		for i in range(len(historico)):
+		for i in range(len(historico) - 1):
+			print "HISTÓRICO: "
+			print historico
+			print "ADDR: "
+			print addr
+			print "NSEQ: "
+			print nseq
 			if historico[0][i] == addr and historico[1][i] == nseq: # Verifica se chave foi encontrada
 				return True
 		return False
