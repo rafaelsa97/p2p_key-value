@@ -11,7 +11,7 @@ import sys
 import socket
 import struct
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 3:
 	print "ERRO!\nTente novamente com dois argumentos: IP PORTO"
 	sys.exit(0)
 
