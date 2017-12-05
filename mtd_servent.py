@@ -99,6 +99,7 @@ def alaga(tipo, TTL, nseq, addr, chave, socket, servents):
 	c = 0
 	for i in servents:
 		socket.sendto(mensagem, (i[1], i[2]))
+		print "Mandou no alaga!"
 		c = c + 1
 
 # KEYREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, addrs_de_servents)
@@ -144,11 +145,12 @@ def KEYFLOOD(dados, lista, socket, historico_key, servents):
 # TOPOREQ(socket, addrs_dos_servents, porto_do_programa, addr_do_cliente, histórico_de_requisições)
 # Obtém núm. seq. enviado pelo cliente e encaminha para enviar TOPOFLOOD e resposta ao cliente
 # Saída: ---//---
-def TOPOREQ(socket, servents, porto, addr, historico_topo):
+def TOPOREQ(dados, addr, s, servents, historico_topo):
 	print "ENTROU NO TOPOREQ"
 	nseq = struct.unpack('!I', dados[2:6])[0] # Obtém núm. sequência a partir do pacote recebido
 	historico_topo.append([addr, nseq])		  # Adiciona a mensagem vista ao histórico
-	alaga(8, 3, nseq, addr, socket.INADDR_ANY, porto)
+	RESP(nseq, '127.0.0.1:51515', addr, s)
+	alaga(8, 3, nseq, addr, '127.0.0.1:51515', s, servents)
 
 # TOPOFLOOD(dados_recebidos, lista_de_chaves, socket, historico_de_requisições, lista_de_servents)
 # Obtém as informações do TOPOFLOOD a partir do payload recebido, responde o cliente e encaminha TOPOFLOOD
@@ -162,13 +164,15 @@ def TOPOFLOOD(dados, lista, socket, historico_topo, servents):
 		IP_cliente = IP_cliente + "." + str(struct.unpack('!B', dados[8:12][i + 1])[0])
 	porto_cliente  = struct.unpack('!H', dados[12:14])[0]
 	topologia      = dados[14:]
+	topologia	   = topologia + " " + '127.0.0.1:51516'
 	addr 		   = (IP_cliente, porto_cliente)
-	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + chave
+	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + topologia
 	if not ja_recebeu(addr, nseq, historico_topo):
 		historico_topo.append([addr, nseq])
 		if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
 			TTL = TTL -1
-			alaga(8, TTL, nseq, addr, chave, socket, servents)
+			alaga(8, TTL, nseq, addr, topologia, socket, servents)
+			RESP(nseq, topologia, addr, socket)
 		return nseq, topologia, historico_topo, addr
 	else:
 		return nseq, topologia, historico_topo, addr
