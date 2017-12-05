@@ -144,7 +144,7 @@ def ja_recebeu(addr, nseq, historico):
 			print addr
 			print "NSEQ: "
 			print nseq
-			if historico[0][i] == addr and historico[1][i] == nseq: # Verifica se chave foi encontrada
+			if historico[i][0] == addr and historico[i][1] == nseq: # Verifica se chave foi encontrada
 				return True
 		return False
 
