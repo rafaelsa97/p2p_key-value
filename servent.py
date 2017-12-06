@@ -42,7 +42,6 @@ nseq           = None
 # Trata as mensagem recebidas:
 while True:
 	aux, addr = s.recvfrom(1024)
-	print "Endereço do cliente: " + str(addr[0]) + " " + str(addr[1])
 	tipo_msg  = struct.unpack('!H',aux[0:2])[0]
 	if tipo_msg == 5: # KEYREQ
 		nseq, chave, historico_key = mtd_servent.KEYREQ(aux, addr, s, lista, servents, historico_key)
