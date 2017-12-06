@@ -11,12 +11,12 @@ import sys
 import socket
 import struct
 
-if len(sys.argv) != 3:
+if len(sys.argv) != 2:
 	print "ERRO!\nTente novamente com dois argumentos: IP PORTO"
 	sys.exit(0)
 
-ip = sys.argv[1]			#Inserir ip do servent no terminal
-port = int(sys.argv[2])		#Inserir porto do servent no terminal
+ip, port = sys.argv[1].split(":")			#Inserir ip e porto do servent no terminal
+port = int(port)		#Transformar porto em inteiro
 udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #Socket UDP
 dest = (ip, port)			#Servent como destino
 n_seq = 0					#Número de sequência das mensagens global
