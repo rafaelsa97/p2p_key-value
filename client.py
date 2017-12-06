@@ -145,14 +145,14 @@ def client():
 
 			req_valor(chave)	#Chama função com a chave como parâmetro			
 
-		elif mensagem[0].upper() == "T":	#Se for do tipo requisição de topologia da rede
+		elif mensagem.upper() == "T":	#Se for do tipo requisição de topologia da rede
 			req_topologia()			#Chama função
 
-		elif mensagem[0].upper() == "Q":	#Se for do tipo solicitar sair
+		elif mensagem.upper() == "Q":	#Se for do tipo solicitar sair
 			udp.close()				#Fecha socket
 			break					#Sai do while
 
-		elif mensagem[0].upper() == "H":	#Se for do tipo Ajuda
+		elif mensagem.upper() == "H":	#Se for do tipo Ajuda
 			lista_comandos()		#Imprime novamente a lista de comandos
 
 		else:						#Caso não for mensagem válida
