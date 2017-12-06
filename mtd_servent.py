@@ -142,20 +142,20 @@ def KEYFLOOD(dados, lista, socket, historico_key, servents):
 	else:
 		return nseq, chave, historico_key, addr
 
-# TOPOREQ(socket, addrs_dos_servents, porto_do_programa, addr_do_cliente, histórico_de_requisições)
+# TOPOREQ(dados_recebidos, endereco_do_cliente, socket, lista_de_chaves, histórico_de_requisições)
 # Obtém núm. seq. enviado pelo cliente e encaminha para enviar TOPOFLOOD e resposta ao cliente
 # Saída: ---//---
-def TOPOREQ(dados, addr, s, servents, historico_topo):
+def TOPOREQ(dados, addr_cliente, addr_servent, porto, s, servents, historico_topo):
 	print "ENTROU NO TOPOREQ"
 	nseq = struct.unpack('!I', dados[2:6])[0] # Obtém núm. sequência a partir do pacote recebido
-	historico_topo.append([addr, nseq])		  # Adiciona a mensagem vista ao histórico
-	RESP(nseq, '127.0.0.1:51515', addr, s)
-	alaga(8, 3, nseq, addr, '127.0.0.1:51515', s, servents)
+	historico_topo.append([addr_cliente, nseq])		  # Adiciona a mensagem vista ao histórico
+	RESP(nseq, str(addr_servent) + ":" + str(porto), addr_cliente, s)
+	alaga(8, 3, nseq, addr_cliente, str(addr_servent) + ":" + str(porto), s, servents)
 
 # TOPOFLOOD(dados_recebidos, lista_de_chaves, socket, historico_de_requisições, lista_de_servents)
 # Obtém as informações do TOPOFLOOD a partir do payload recebido, responde o cliente e encaminha TOPOFLOOD
 # Saída: Número de sequência, topologia da rede, histórico de requisições atualizado, addr do cliente
-def TOPOFLOOD(dados, lista, socket, historico_topo, servents):
+def TOPOFLOOD(dados, lista, socket, historico_topo, servents, addr_servent, porto_servent):
 	print "Dados recebidos por TOPOFLOOD"
 	TTL            = struct.unpack('!H', dados[2:4])[0]
 	nseq           = struct.unpack('!I', dados[4:8])[0]
@@ -164,18 +164,18 @@ def TOPOFLOOD(dados, lista, socket, historico_topo, servents):
 		IP_cliente = IP_cliente + "." + str(struct.unpack('!B', dados[8:12][i + 1])[0])
 	porto_cliente  = struct.unpack('!H', dados[12:14])[0]
 	topologia      = dados[14:]
-	topologia	   = topologia + " " + '127.0.0.1:51516'
-	addr 		   = (IP_cliente, porto_cliente)
+	topologia	   = topologia + " " + addr_servent + ":" + str(porto_servent)
+	addr_cliente   = (IP_cliente, porto_cliente)
 	print str(TTL) + "---" + str(nseq) + "---" + IP_cliente + "---" + str(porto_cliente) + "---" + topologia
-	if not ja_recebeu(addr, nseq, historico_topo):
-		historico_topo.append([addr, nseq])
+	if not ja_recebeu(addr_cliente, nseq, historico_topo):
+		historico_topo.append([addr_cliente, nseq])
 		if TTL > 0:		  # Alaga o overlay caso TTL não seja 0
 			TTL = TTL -1
-			alaga(8, TTL, nseq, addr, topologia, socket, servents)
-			RESP(nseq, topologia, addr, socket)
-		return nseq, topologia, historico_topo, addr
+			alaga(8, TTL, nseq, addr_cliente, topologia, socket, servents)
+			RESP(nseq, topologia, addr_cliente, socket)
+		return nseq, topologia, historico_topo, addr_cliente
 	else:
-		return nseq, topologia, historico_topo, addr
+		return nseq, topologia, historico_topo, addr_cliente
 
 # ja_recebeu(addr_do_cliente, num_sequencia, historico_de_requisições)
 # Confere se requisição de KEYFLOOD de um nseq, de um mesmo addr já foi recebido antes
@@ -185,18 +185,6 @@ def ja_recebeu(addr, nseq, historico):
 		return False
 	else:
 		for i in range(len(historico)):
-			# print "\n"
-			# print "HISTÓRICO (addr): "
-			# print historico[i][0]
-			# print "ADDR: "
-			# print addr
-			# print "HISTÓRICO (nseq): "
-			# print historico[i][1]
-			# print "NSEQ: "
-			# print nseq
-			# print "HISTÓRICO: "
-			# print historico
-			# print "\n"
 			if historico[i][0] == addr and historico[i][1] == nseq: # Verifica se chave foi encontrada
 				return True
 		return False

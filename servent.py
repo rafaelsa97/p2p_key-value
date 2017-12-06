@@ -14,7 +14,7 @@ import mtd_servent
 
 porto, nome_arquivo, servents = mtd_servent.parametros_entrada(sys.argv)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Cria socket UDP
-HOST = str(socket.INADDR_ANY)
+HOST = str(socket.gethostbyname(socket.gethostname()))
 print "Host aqui: " + HOST
 s.bind(('localhost',porto))
 
@@ -47,9 +47,9 @@ while True:
 	if tipo_msg == 5: # KEYREQ
 		nseq, chave, historico_key = mtd_servent.KEYREQ(aux, addr, s, lista, servents, historico_key)
 	if tipo_msg == 6: # TOPOREQ
-		mtd_servent.TOPOREQ(aux, addr, s, servents, historico_topo)
+		mtd_servent.TOPOREQ(aux, addr, HOST, porto, s, servents, historico_topo)
 	if tipo_msg == 7: # KEYFLOOD
 		nseq, chave, historico_key, addr = mtd_servent.KEYFLOOD(aux, lista, s, historico_key, servents)
 	if tipo_msg == 8: # TOPOFLOOD
-		nseq, topologia, historico_topo, addr = mtd_servent.TOPOFLOOD(aux, lista, s, historico_topo, servents)
+		nseq, topologia, historico_topo, addr = mtd_servent.TOPOFLOOD(aux, lista, s, historico_topo, servents, HOST, porto)
 arquivo.close()
