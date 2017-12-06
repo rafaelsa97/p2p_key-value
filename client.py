@@ -11,6 +11,10 @@ import sys
 import socket
 import struct
 
+if len(sys.argv) != 3:
+	print "ERRO!\nTente novamente com dois argumentos: IP PORTO"
+	sys.exit(0)
+
 ip = sys.argv[1]			#Inserir ip do servent no terminal
 port = int(sys.argv[2])		#Inserir porto do servent no terminal
 udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #Socket UDP
@@ -50,7 +54,8 @@ def req_valor(chave):
 					if struct.unpack('!I',resp[2:6])[0] == n_seq - 1:	#Se for o mesmo número de seq
 						print resp[6:] + " " + str(address[0]) + ":" + str(address[1]) 
 						#Printa o valor e o endereço ip e porto de quem enviou
-
+					else:
+						print "Mensagem incorreta recebida de:" + address
 		except socket.timeout: #Caso o tempo ultrapasse
 			if recebeu == False: #Caso não tiver recebido nada ainda
 				try:
@@ -64,6 +69,8 @@ def req_valor(chave):
 						if struct.unpack('!H',resp[0:2])[0] == 9:		#Verificar RESP
 							if struct.unpack('!I',resp[2:6])[0] == n_seq - 1:		#Verificar num seq
 								print resp[6:] + " " + str(address[0]) + ":" + str(address[1]) #Printa
+							else:
+								print "Mensagem incorreta recebida de:" + address
 
 				except socket.timeout:	#Caso ainda não tiver recebido nada
 					print "Nenhuma resposta recebida" #Avisa que não teve resposta
@@ -91,6 +98,8 @@ def req_topologia():
 				if struct.unpack('!H',resp[0:2])[0] == 9:	#Se a mensagem for do tipo RESP
 					if struct.unpack('!I',resp[2:6])[0] == n_seq - 1:	#Se for o mesmo número de seq
 						print resp[6:] #Printa a topologia de rede
+					else:
+						print "Mensagem incorreta recebida de:" + address
 
 		except socket.timeout: #Caso o tempo ultrapasse
 			if recebeu == False:  #Caso não tiver recebido nada ainda
@@ -105,6 +114,8 @@ def req_topologia():
 						if struct.unpack('!H',resp[0:2])[0] == 9:	#Verificar RESP
 							if struct.unpack('!I',resp[2:6])[0] == n_seq - 1:	#Verificar num seq
 								print resp[6:]	#Printa topologia de rede
+							else:
+								print "Mensagem incorreta recebida de:" + address
 
 
 				except socket.timeout: #Caso ainda não tiver recebido nada
